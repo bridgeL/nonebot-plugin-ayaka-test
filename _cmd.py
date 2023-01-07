@@ -2,21 +2,13 @@
 import asyncio
 from pathlib import Path
 from time import time
-from .utils import load_data_from_file
+from .utils import load_data_from_file, safe_split
 from .fake_cq import fake_cq
-
-
-def safe_split(text: str,  n: int, sep: str = " "):
-    '''安全分割字符串为n部分，不足部分使用空字符串补齐'''
-    i = text.count(sep)
-    if i < n - 1:
-        text += sep * (n - i - 1)
-    return text.split(sep, maxsplit=n-1)
 
 
 @fake_cq.on_cmd("d")
 async def delay(text: str):
-    '''延时n秒'''
+    '''<n> | 延时n秒，缺省为1秒'''
     try:
         n = float(text.strip())
     except:
@@ -133,6 +125,7 @@ async def run_script(name: str):
     lines: list[str] = load_data_from_file(path)
 
     for line in lines:
+        print(line)
         await fake_cq.terminal_deal(line)
         # 默认延时0.1秒
         after = fake_cq._data.get("after", "d 0.1")

@@ -1,19 +1,6 @@
 '''拓展FakeCQ的假cqhttp api'''
-import base64
-import re
-from .utils import safe_open_file
+from .utils import safe_open_file, base64_to_pic
 from .fake_cq import fake_cq
-
-
-def base64_to_pic(base64_str):
-    base64_str = re.sub("^.*?base64://", "", base64_str)
-    base64_bs = base64.b64decode(base64_str)
-
-    # 固定名称
-    path, f = safe_open_file("data/ayaka_test/1.png", "wb+")
-    with f:
-        f.write(base64_bs)
-    return str(path)
 
 
 def handle_message(message):
