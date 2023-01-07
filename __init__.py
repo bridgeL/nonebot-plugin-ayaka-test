@@ -1,1 +1,1 @@
-from . import cqhttp, terminal
+from . import fake_cq, cmd, api
