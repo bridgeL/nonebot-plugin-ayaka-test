@@ -10,13 +10,20 @@ logger.level("AYAKA", no=27, icon="⚡", color="<blue>")
 FAKE_BOT_ID = 123456
 
 
+class Config:
+    def __init__(self) -> None:
+        self.record = 0
+        # 默认延时0.1秒
+        self.after = "d 0.1"
+
+
 class FakeCQ:
     def __init__(self) -> None:
-        self.cmd_func_dict = {}
-        self.api_func_dict = {}
-        self._helps = []
+        self.cmd_dict: dict[str, list[Callable[[str], Awaitable]]] = {}
+        self.api_dict: dict[str, list[Callable[[str, dict], Awaitable]]] = {}
+        self._helps: list[str] = []
         self.self_id = FAKE_BOT_ID
-        self._data = {}
+        self.config = Config()
 
     def print(self, *args, colors=False, max_length: int = 3000):
         '''AYAKA日志输出'''
@@ -58,34 +65,26 @@ class FakeCQ:
         for h in self._helps:
             self.print(h, colors=True)
 
-    async def unknown_terminal_cmd(self, *args, **kwargs):
-        self.print("未定义的终端命令")
-
     async def terminal_deal(self, line: str):
         '''处理来自终端的输入'''
         line = line.strip()
         if not line:
             return
-        for cmd in self.cmd_func_dict:
+        for cmd in self.cmd_dict:
             if line.startswith(cmd):
-                func = self.cmd_func_dict[cmd]
                 text = line[len(cmd):].strip()
+                for func in self.cmd_dict[cmd]:
+                    await func(text)
                 break
         else:
-            func = self.unknown_terminal_cmd
-            text = ""
-
-        await func(text)
+            self.print("未定义的终端命令")
 
     async def terminal_loop(self):
         '''通过终端向nonebot发消息'''
         loop = asyncio.get_event_loop()
         while True:
-            line = await loop.run_in_executor(None, input)
+            line = await loop.run_in_executor(None, input, "\n")
             await self.terminal_deal(line)
-
-    async def unknown_fake_cq_api(self, *args, **kwargs):
-        self.print("未定义的假cqhttp api")
 
     async def fake_cq_loop(self):
         '''作为虚假的cq，回复nb发出的请求'''
@@ -94,8 +93,11 @@ class FakeCQ:
             data = json.loads(text)
             action = data["action"]
             self.print(f"<y>{action}</y>", colors=True)
-            func = self.api_func_dict.get(action, self.unknown_fake_cq_api)
-            await func(data["echo"], data["params"])
+            if action in self.api_dict:
+                for func in self.api_dict[action]:
+                    await func(data["echo"], data["params"])
+            else:
+                self.print("未定义的假cqhttp api")
 
     def on_cmd(self, cmd):
         '''注册终端命令回调'''
@@ -103,14 +105,16 @@ class FakeCQ:
             doc = func.__doc__ if func.__doc__ else func.__name__
             doc = doc.replace("<", "\<")
             self._helps.append(f"<y>{cmd}</y> {doc}")
-            self.cmd_func_dict[cmd] = func
+            self.cmd_dict.setdefault(cmd, [])
+            self.cmd_dict[cmd].append(func)
             return func
         return decorator
 
     def on_api(self, api):
         '''注册假cqhttp api回调'''
         def decorator(func: Callable[[int, dict], Awaitable]):
-            self.api_func_dict[api] = func
+            self.api_dict.setdefault(api, [])
+            self.api_dict[api].append(func)
             return func
         return decorator
 

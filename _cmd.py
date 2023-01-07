@@ -4,6 +4,7 @@ from pathlib import Path
 from time import time
 from .utils import load_data_from_file, safe_split
 from .fake_cq import fake_cq
+from .record import record
 
 
 @fake_cq.on_cmd("d")
@@ -58,6 +59,7 @@ async def send_group_msg(text: str):
     # 回显
     fake_cq.print(f"群聊({gid}) <y>{name}</y>({uid}) 说：", colors=True)
     fake_cq.print(text)
+    record(name, text)
 
     # 发送假cqhttp消息
     await fake_cq.send_json(data)
@@ -97,6 +99,7 @@ async def send_private_msg(text: str):
     # 回显
     fake_cq.print(f"私聊({uid}) <y>{name}</y> 说：", colors=True)
     fake_cq.print(text)
+    record(name, text)
 
     # 发送假cqhttp消息
     await fake_cq.send_json(data)
@@ -111,7 +114,7 @@ async def do_nothing(text: str):
 @fake_cq.on_cmd("after")
 async def set_after(line: str):
     '''<line> | 设置脚本每行代码执行完毕后，再执行的内容'''
-    fake_cq._data["after"] = line
+    fake_cq.config.after = line
 
 
 @fake_cq.on_cmd("s")
@@ -125,11 +128,24 @@ async def run_script(name: str):
     lines: list[str] = load_data_from_file(path)
 
     for line in lines:
-        print(line)
+        print(f"{name}>", line)
         await fake_cq.terminal_deal(line)
-        # 默认延时0.1秒
-        after = fake_cq._data.get("after", "d 0.1")
+        after = fake_cq.config.after
         await fake_cq.terminal_deal(after)
+
+
+@fake_cq.on_cmd("r")
+async def set_record(text: str):
+    '''0/1 | 关闭/启动record，默认为关闭'''
+    try:
+        fake_cq.config.record = int(text) > 0
+    except:
+        return
+
+    if fake_cq.config.record:
+        fake_cq.print("已开启record")
+    else:
+        fake_cq.print("已关闭record")
 
 
 @fake_cq.on_cmd("h")
