@@ -7,7 +7,7 @@ from ayaka import run_in_startup, get_driver, logger
 
 driver = get_driver()
 logger.level("AYAKA", no=27, icon="⚡", color="<blue>")
-FAKE_BOT_ID = 123
+FAKE_BOT_ID = 123456
 
 
 class FakeCQ:
@@ -48,13 +48,14 @@ class FakeCQ:
         asyncio.create_task(self.fake_cq_loop())
 
         # 发送帮助
-        self.print("AYAKA_TEST已启动")
+        self.print("<g>AYAKA_TEST</g> 已启动", colors=True)
+        self.print(f"BOT_ID: {self.self_id}")
         self.print_help()
 
     def print_help(self):
         '''打印帮助'''
         for h in self._helps:
-            self.print(h)
+            self.print(h, colors=True)
 
     async def unknown_terminal_cmd(self, *args, **kwargs):
         self.print("未定义的终端命令")
@@ -99,7 +100,8 @@ class FakeCQ:
         '''注册终端命令回调'''
         def decorator(func: Callable[[str], Awaitable]):
             doc = func.__doc__ if func.__doc__ else func.__name__
-            self._helps.append(f"{cmd} {doc}")
+            doc = doc.replace("<", "\<")
+            self._helps.append(f"<y>{cmd}</y> {doc}")
             self.cmd_func_dict[cmd] = func
             return func
         return decorator
