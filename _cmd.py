@@ -59,7 +59,7 @@ async def send_group_msg(text: str):
     # 回显
     fake_cq.print(f"群聊({gid}) <y>{name}</y>({uid}) 说：", colors=True)
     fake_cq.print(text)
-    record(name, text)
+    record("user", text)
 
     # 发送假cqhttp消息
     await fake_cq.send_json(data)
@@ -99,7 +99,7 @@ async def send_private_msg(text: str):
     # 回显
     fake_cq.print(f"私聊({uid}) <y>{name}</y> 说：", colors=True)
     fake_cq.print(text)
-    record(name, text)
+    record("user", text)
 
     # 发送假cqhttp消息
     await fake_cq.send_json(data)

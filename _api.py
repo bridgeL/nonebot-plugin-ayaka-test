@@ -100,6 +100,15 @@ async def delete_msg(echo: int, params: dict):
     fake_cq.print(f"<r>系统</r> 说：\n已撤回", colors=True)
 
 
+@fake_cq.on_api("send_msg")
+async def record_send_msg(echo: int, params: dict):
+    message_type = params["message_type"]
+    if message_type == "group":
+        await record_group_msg(echo, params)
+    else:
+        await record_private_msg(echo, params)
+
+
 @fake_cq.on_api("send_private_msg")
 async def record_private_msg(echo: int, params: dict):
     text = handle_message(params["message"])
@@ -121,4 +130,4 @@ async def record_group_forward_msg(echo: int, params: dict):
     for m in messages:
         name = m["data"]["nickname"]
         text = m["data"]["content"]
-        record(name, text)
+        record("Bot", text)
