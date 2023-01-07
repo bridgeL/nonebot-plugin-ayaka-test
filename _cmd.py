@@ -2,7 +2,7 @@
 import asyncio
 from pathlib import Path
 from time import time
-from ayaka import load_data_from_file
+from .utils import load_data_from_file
 from .fake_cq import fake_cq
 
 
@@ -116,8 +116,14 @@ async def do_nothing(text: str):
     return
 
 
+@fake_cq.on_cmd("after")
+async def set_after(line: str):
+    '''<line> | 设置脚本每行代码执行完毕后，再执行的内容'''
+    fake_cq._data["after"] = line
+
+
 @fake_cq.on_cmd("s")
-async def _(name: str):
+async def run_script(name: str):
     '''<name> | 执行 script/<name>.txt自动化脚本'''
     path = Path("script", name).with_suffix(".txt")
     if not path.is_file():
@@ -128,8 +134,9 @@ async def _(name: str):
 
     for line in lines:
         await fake_cq.terminal_deal(line)
-        # 延时0.1秒
-        await fake_cq.terminal_deal("d 0.1")
+        # 默认延时0.1秒
+        after = fake_cq._data.get("after", "d 0.1")
+        await fake_cq.terminal_deal(after)
 
 
 @fake_cq.on_cmd("h")

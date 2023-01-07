@@ -3,7 +3,7 @@ import asyncio
 import json
 from typing import Awaitable, Callable
 from websockets.legacy.client import Connect
-from ayaka import run_in_startup, get_driver, logger
+from .utils import run_in_startup, get_driver, logger
 
 driver = get_driver()
 logger.level("AYAKA", no=27, icon="⚡", color="<blue>")
@@ -16,6 +16,7 @@ class FakeCQ:
         self.api_func_dict = {}
         self._helps = []
         self.self_id = FAKE_BOT_ID
+        self._data = {}
 
     def print(self, *args, colors=False, max_length: int = 3000):
         '''AYAKA日志输出'''
@@ -74,7 +75,7 @@ class FakeCQ:
             func = self.unknown_terminal_cmd
             text = ""
 
-        asyncio.create_task(func(text))
+        await func(text)
 
     async def terminal_loop(self):
         '''通过终端向nonebot发消息'''
@@ -94,7 +95,7 @@ class FakeCQ:
             action = data["action"]
             self.print(f"<y>{action}</y>", colors=True)
             func = self.api_func_dict.get(action, self.unknown_fake_cq_api)
-            asyncio.create_task(func(data["echo"], data["params"]))
+            await func(data["echo"], data["params"])
 
     def on_cmd(self, cmd):
         '''注册终端命令回调'''

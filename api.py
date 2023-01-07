@@ -1,7 +1,7 @@
 '''拓展FakeCQ的假cqhttp api'''
 import base64
 import re
-from ayaka import safe_open_file
+from .utils import safe_open_file
 from .fake_cq import fake_cq
 
 

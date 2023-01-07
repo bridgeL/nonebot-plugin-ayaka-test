@@ -1,7 +1,7 @@
 '''清理可能已经卡死的上一次的端口 win10使用'''
 import os
 import shlex
-from ayaka import get_driver
+from .utils import get_driver
 
 driver = get_driver()
 port = driver.config.port
