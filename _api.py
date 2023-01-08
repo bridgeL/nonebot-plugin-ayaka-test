@@ -54,14 +54,16 @@ async def group_msg(echo: int, params: dict):
 async def _(echo: int, params: dict):
     gid = params["group_id"]
     messages = params["messages"]
-    items = []
+    fake_cq.print(f"群聊({gid}) 收到<y>合并转发</y>消息", colors=True)
+    
     for m in messages:
         uid = m["data"]["user_id"]
         name = m["data"]["nickname"]
+        fake_cq.print(f"<y>{name}</y>({uid}) 说：", colors=True)
+        
         text = m["data"]["content"]
-        items.append(f"<y>{name}</y>({uid}) 说：\n{text}")
-    fake_cq.print(f"群聊({gid}) 收到<y>合并转发</y>消息", colors=True)
-    fake_cq.print("\n\n".join(items))
+        fake_cq.print(text + "\n")
+
     await fake_cq.send_echo(echo)
 
 
