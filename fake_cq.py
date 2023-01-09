@@ -3,7 +3,7 @@ import asyncio
 import json
 from typing import Awaitable, Callable
 from websockets.legacy.client import Connect
-from .utils import run_in_startup, get_driver, logger
+from .utils import get_driver, logger
 
 driver = get_driver()
 logger.level("AYAKA", no=27, icon="⚡", color="<blue>")
@@ -83,7 +83,7 @@ class FakeCQ:
         '''通过终端向nonebot发消息'''
         loop = asyncio.get_event_loop()
         while True:
-            line = await loop.run_in_executor(None, input, "\n")
+            line = await loop.run_in_executor(None, input)
             await self.terminal_deal(line)
 
     async def fake_cq_loop(self):
@@ -135,6 +135,6 @@ class FakeCQ:
 fake_cq = FakeCQ()
 
 
-@run_in_startup
+@driver.on_startup
 async def startup():
     asyncio.create_task(fake_cq.connect())

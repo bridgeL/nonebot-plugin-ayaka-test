@@ -1,6 +1,6 @@
 <div align="center">
 
-# ayaka_test - 0.0.5
+# ayaka_test - 0.0.6
 
 </div>
 

@@ -6,8 +6,12 @@ import base64
 from pathlib import Path
 from nonebot import get_driver, init, logger
 
-init()
-driver = get_driver()
+try:
+    driver = get_driver()
+except:
+    init()
+    driver = get_driver()
+
 port = driver.config.port
 
 
@@ -16,9 +20,8 @@ def base64_to_pic(base64_str):
     base64_bs = base64.b64decode(base64_str)
 
     # 固定名称
-    path, f = safe_open_file("data/ayaka_test/1.png", "wb+")
-    with f:
-        f.write(base64_bs)
+    path = ensure_dir_exists("data/ayaka_test/1.png")
+    path.write_bytes(base64_bs)
     return str(path)
 
 
@@ -30,26 +33,30 @@ def safe_split(text: str,  n: int, sep: str = " "):
     return text.split(sep, maxsplit=n-1)
 
 
-def safe_open_file(path: str | Path, mode: str = "a+"):
-    '''安全打开文件，如果文件父目录不存在，则自动新建
+def ensure_dir_exists(path: str | Path):
+    '''确保目录存在
 
     参数：
 
-        path：文件地址，str或Path类型
+        path：文件路径或目录路径
 
-        mode：文件打开模式
+            若为文件路径，该函数将确保该文件父目录存在
+
+            若为目录路径，该函数将确保该目录存在
 
     返回：
 
-        path: 文件地址，Path类型
-
-        f：打开后的文件IO
+        Path对象
     '''
-    if isinstance(path, str):
+    if not isinstance(path, Path):
         path = Path(path)
-    if not path.parent.exists():
-        path.parent.mkdir(parents=True)
-    return path, path.open(mode, encoding="utf8")
+    # 文件
+    if path.suffix:
+        ensure_dir_exists(path.parent)
+    # 目录
+    elif not path.exists():
+        path.mkdir(parents=True)
+    return path
 
 
 def load_data_from_file(path: str | Path):
@@ -67,21 +74,14 @@ def load_data_from_file(path: str | Path):
 
         json反序列化后的结果(对应.json文件) 或 字符串数组(对应.txt文件)
     '''
-    if isinstance(path, str):
-        path = Path(path)
+    path = ensure_dir_exists(path)
 
-    with safe_open_file(path, "r")[1] as f:
+    with path.open("r", encoding="utf8") as f:
         if path.suffix == ".json":
             return json.load(f)
         else:
             # 排除空行
             return [line[:-1] for line in f if line[:-1]]
-
-
-def run_in_startup(func):
-    '''等效于driver.on_startup(func)'''
-    driver.on_startup(func)
-    return func
 
 
 def clean_port():

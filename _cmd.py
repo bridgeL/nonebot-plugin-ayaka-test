@@ -2,9 +2,11 @@
 import asyncio
 from pathlib import Path
 from time import time
-from .utils import load_data_from_file, safe_split
+from .utils import load_data_from_file, safe_split, get_driver
 from .fake_cq import fake_cq
 from .record import record
+
+driver = get_driver()
 
 
 @fake_cq.on_cmd("d")
@@ -149,6 +151,6 @@ async def set_record(text: str):
 
 
 @fake_cq.on_cmd("h")
-async def _(text: str):
+async def show_help(text: str):
     '''帮助'''
     fake_cq.print_help()
